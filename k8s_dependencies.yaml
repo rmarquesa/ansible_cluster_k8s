@@ -1,11 +1,8 @@
 - hosts: all
   become: yes
-  vars:
-    k8s_user: devops
-    proxy_env: 
-      http_proxy: http://proxy.server.br:8080
-      https_proxy: http://proxy.server.br:8080
-  
+  vars_files:
+    - "env_vars.yml"
+
   tasks:
     - name: Install Docker
       yum:
@@ -71,10 +68,8 @@
 
 - hosts: master
   become: yes
-  vars:
-    proxy_env: 
-      http_proxy: http://proxy.server.br:8080
-      https_proxy: http://proxy.server.br:8080
+  vars_files:
+    - "env_vars.yml"
 
   tasks:
     - name: Install kubectl on node master
