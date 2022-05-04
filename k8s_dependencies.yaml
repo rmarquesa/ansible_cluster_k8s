@@ -7,7 +7,6 @@
       https_proxy: http://proxy.server.br:8080
   
   tasks:
-
     - name: Install Docker
       yum:
         name: docker
@@ -51,6 +50,7 @@
         exclude:
           - kubelet
           - kubeadm
+          - kubectl
 
     - name: Install kubelet, kubeadm e kubectl
       yum:
@@ -62,8 +62,12 @@
         packages:
         - kubelet
         - kubeadm
-        - kubectl
       environment: "{{ proxy_env }}"
+
+    - name: Enable kubelet
+      systemd:
+        name: kubelet
+        enabled: yes
 
 - hosts: master
   become: yes
@@ -73,9 +77,10 @@
       https_proxy: http://proxy.server.br:8080
 
   tasks:
-   - name: Install kubectl on node master
-     yum:
+    - name: Install kubectl on node master
+      yum:
         name: kubectl
         disable_excludes: kubernetes
         state: installed
-        update_cache: yes      
+        update_cache: yes
+      environment: "{{ proxy_env }}"

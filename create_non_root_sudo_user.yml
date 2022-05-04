@@ -1,19 +1,19 @@
 - hosts: all
   become: yes
   vars:
-    user: devops
+    k8s_user: devops
 
   tasks:
-    - name: "Create the {{ user }} user"
-      user: name="{{ user }}" append=yes state=present createhome=yes shell=/bin/bash
+    - name: "Create the {{ k8s_user }} user"
+      user: name="{{ k8s_user }}" append=yes state=present createhome=yes shell=/bin/bash
 
-    - name: "Allow {{ user }} to have passwordless sudo"
+    - name: "Allow {{ k8s_user }} to have passwordless sudo"
       lineinfile:
         dest: /etc/sudoers
-        line: "{{ user }} ALL=(ALL) NOPASSWD: ALL"
+        line: "{{ k8s_user }} ALL=(ALL) NOPASSWD: ALL"
         validate: 'visudo -cf %s'
 
-    - name: "Set up authorized keys for the {{ user }} user"
-      authorized_key: user="{{ user }}" key="{{ item }}"
+    - name: "Set up authorized keys for the {{ k8s_user }} user"
+      authorized_key: user="{{ k8s_user }}" key="{{ item }}"
       with_file:
         - ~/.ssh/id_rsa.pub
