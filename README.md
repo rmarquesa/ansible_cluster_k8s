@@ -13,17 +13,12 @@ ansible-playbook -i k8s_inventory.ini ~/ansible_cluster_k8s/create_non_root_sudo
 ansible-playbook -i k8s_inventory.ini ~/ansible_cluster_k8s/k8s_dependencies.yaml
 ```
 
-**3 - Installing k8s depedencies**
+**3 - Configure Node Master**
 ```sh
-ansible-playbook -i k8s_inventory.ini ~/ansible_cluster_k8s/k8s_dependencies.yaml
+ansible-playbook -i k8s_inventory.ini ~/ansible_cluster_k8s/k8s_master.yaml
 ```
 
-**4 - Configure Node Master**
-```sh
-ansible-playbook -i k8s_inventory.ini ~/ansible_cluster_k8s/k8s_dependencies.yaml
-```
-
-**5 - Configure Nodes Workers**
+**4 - Configure Nodes Workers**
 ```sh
 ansible-playbook -i k8s_inventory.ini ~/ansible_cluster_k8s/k8s_workers.yaml
 ```
