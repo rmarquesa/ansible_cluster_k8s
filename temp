@@ -1,0 +1,28 @@
+    - name: Enable kubelet
+      systemd:
+        name: kubelet
+        enabled: yes    
+
+    - name: Get latest Kubernetes release
+      uri:
+        url: https://dl.k8s.io/release/stable.txt
+        return_content: yes
+      register: k8s_latest_version
+      environment: "{{ proxy_env }}"
+
+    - name: Create a kubeadm-config.yaml
+      copy:
+        dest: kubeadm-config.yaml
+        content: |
+          kind: ClusterConfiguration
+          apiVersion: kubeadm.k8s.io/v1beta3
+          kubernetesVersion: {{ k8s_latest_version.content }}
+          ---
+          kind: KubeletConfiguration
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          cgroupDriver: systemd
+    
+    - name: Initializing kubeadm
+      command: kubeadm init --config kubeadm-config.yaml
+      args:
+        warn: no

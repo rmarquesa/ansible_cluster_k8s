@@ -1,0 +1,81 @@
+- hosts: all
+  become: yes
+  vars:
+    k8s_user: devops
+    proxy_env: 
+      http_proxy: http://proxy.server.br:8080
+      https_proxy: http://proxy.server.br:8080
+  
+  tasks:
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: installed
+        update_cache: yes
+      environment: "{{ proxy_env }}"
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+
+    - name: Disable SELinux on reboot
+      selinux:
+        state: disabled
+
+    - name: Ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+        state: present
+
+    - name: Ensure net.bridge.bridge-nf-call-iptables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present
+    
+    - name: Add Kubernetes repository
+      yum_repository:
+        name: kubernetes
+        description: Kubernetes
+        state: present
+        baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+        enabled: yes
+        gpgcheck: yes
+        repo_gpgcheck: yes
+        gpgkey: 
+          - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+          - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        exclude:
+          - kubelet
+          - kubeadm
+
+    - name: Install kubelet, kubeadm e kubectl
+      yum:
+        name: "{{ packages }}"
+        disable_excludes: kubernetes
+        state: installed
+        update_cache: yes
+      vars:
+        packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+      environment: "{{ proxy_env }}"
+
+- hosts: master
+  become: yes
+  vars:
+    proxy_env: 
+      http_proxy: http://proxy.server.br:8080
+      https_proxy: http://proxy.server.br:8080
+
+  tasks:
+   - name: Install kubectl on node master
+     yum:
+        name: kubectl
+        disable_excludes: kubernetes
+        state: installed
+        update_cache: yes      
