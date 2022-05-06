@@ -1,18 +1,17 @@
 - hosts: master
   become: yes
   vars_files:
-    - "env_vars.yml"
+    - "env_vars.yaml"
 
   tasks:
     - name: Initialize the cluster
-      shell: kubeadm init --pod-network-cidr=10.244.0.0/16 >> cluster_initialized.txt
-      args:
-        chdir: $HOME
-        creates: cluster_initialized.txt
+      become: yes
+      become_user: "{{ k8s_user }}"
+      shell: sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 
     - name: Create .kube directory
       become: yes
-      become_user: k8s_user
+      become_user: "{{ k8s_user }}"
       file:
         path: $HOME/.kube
         state: directory
@@ -21,15 +20,11 @@
     - name: Copy admin.conf to user's kube config
       copy:
         src: /etc/kubernetes/admin.conf
-        dest: /home/"{{ k8s_user }}"/.kube/config
+        dest: "/home/{{ k8s_user }}/.kube/config"
         remote_src: yes
-        owner: k8s_user
+        owner: "{{ k8s_user }}"
 
-    - name: Install Pod network
-      become: yes
-      become_user: k8s_user
-      shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml >> pod_network_setup.txt
-      args:
-        chdir: $HOME
-        creates: pod_network_setup.txt
-      environment: "{{ proxy_env }}"
+    # - name: Install Pod network
+    #   become_user: "{{ k8s_user }}"
+    #   shell: kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kube-router-all-service-daemonset.yaml
+    #   environment: "{{ proxy_env }}"

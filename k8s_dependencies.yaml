@@ -1,7 +1,7 @@
 - hosts: all
   become: yes
   vars_files:
-    - "env_vars.yml"
+    - "env_vars.yaml"
 
   tasks:
     - name: Install Docker
@@ -20,16 +20,22 @@
       selinux:
         state: disabled
 
+    - name: Ensure net.ipv4.ip_forward  is set to 1
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+
     - name: Ensure net.bridge.bridge-nf-call-ip6tables is set to 1
       sysctl:
         name: net.bridge.bridge-nf-call-ip6tables
-        value: 1
+        value: "1"
         state: present
 
     - name: Ensure net.bridge.bridge-nf-call-iptables is set to 1
       sysctl:
         name: net.bridge.bridge-nf-call-iptables
-        value: 1
+        value: "1"
         state: present
     
     - name: Add Kubernetes repository
@@ -49,7 +55,11 @@
           - kubeadm
           - kubectl
 
-    - name: Install kubelet, kubeadm e kubectl
+    - name:
+      become: yes
+      shell: sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+    - name: Install kubelet, kubeadm and kubectl
       yum:
         name: "{{ packages }}"
         disable_excludes: kubernetes
@@ -59,23 +69,5 @@
         packages:
         - kubelet
         - kubeadm
-      environment: "{{ proxy_env }}"
-
-    - name: Enable kubelet
-      systemd:
-        name: kubelet
-        enabled: yes
-
-- hosts: master
-  become: yes
-  vars_files:
-    - "env_vars.yml"
-
-  tasks:
-    - name: Install kubectl on node master
-      yum:
-        name: kubectl
-        disable_excludes: kubernetes
-        state: installed
-        update_cache: yes
+        - kubectl
       environment: "{{ proxy_env }}"
