@@ -1,2 +1,2 @@
-env_vars.yaml
-k8s_inventory.ini
+./env_vars.yaml
+./k8s_inventory.ini
